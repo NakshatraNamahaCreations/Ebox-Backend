@@ -5,7 +5,9 @@ exports.addProduct = async (req, res) => {
     console.log(req.body);
     console.log(req.files);
     const {
+      shop_name,
       vendor_id,
+      vendor_name,
       product_category,
       product_type,
       product_name,
@@ -22,7 +24,7 @@ exports.addProduct = async (req, res) => {
       product_weight,
       country_of_orgin,
       warranty,
-      manufature_name,
+      manufacturer_name,
       product_color,
       Specifications,
     } = req.body;
@@ -31,20 +33,26 @@ exports.addProduct = async (req, res) => {
     try {
       specificationsArray = JSON.parse(Specifications);
     } catch (e) {
-      return res.status(400).json({ message: "Invalid Specifications format" });
+      return res
+        .status(400)
+        .json({ message: "Add atleast one specifications" });
     }
     if (
       !Array.isArray(specificationsArray) ||
       specificationsArray.some((prop) => !prop.name || !prop.value)
     ) {
-      return res.status(400).json({ message: "Invalid Specifications format" });
+      return res
+        .status(400)
+        .json({ message: "Add atleast one specifications" });
     }
     // Process images and video
     const product_image = req.files.images.map((file) => file.path);
     const product_video = req.files.video ? req.files.video[0].path : null;
     // Create a new product
     const newProduct = new productSchema({
+      shop_name,
       vendor_id,
+      vendor_name,
       product_category,
       product_type,
       product_name,
@@ -61,7 +69,7 @@ exports.addProduct = async (req, res) => {
       product_weight,
       country_of_orgin,
       warranty,
-      manufature_name,
+      manufacturer_name,
       product_color,
       Specifications: specificationsArray, // This will include all the specifications
     });
@@ -91,7 +99,9 @@ exports.getAllProduct = async (req, res) => {
 
 exports.getAllRentalProduct = async (req, res) => {
   try {
-    const allRentalProduct = await productSchema.find({ product_type: "sell" });
+    const allRentalProduct = await productSchema.find({
+      product_type: "rental",
+    });
     if (allRentalProduct.length < 0) {
       return res.status(404).json({ message: "products not found" });
     }
@@ -110,6 +120,40 @@ exports.getProduct = async (req, res) => {
       return res.status(404).json({ message: "products not found" });
     }
     res.status(200).json({ product: product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.filteroutVendorProduct = async (req, res) => {
+  try {
+    let vendorId = req.params.id;
+    let allSellingProduct = await productSchema.find();
+    // const vendorProducts  = await productSchema.find({ vendor_id: vendorId });
+    let remainingProducts = allSellingProduct.filter(
+      (product) => product.vendor_id.toString() !== vendorId
+    );
+    // console.log(
+    //   "remainingProducts",
+    //   remainingProducts.find({ product_type: "sell" })
+    // );
+    return res.status(200).json({ products: remainingProducts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getReview = async (req, res) => {
+  try {
+    // let productId = req.params.id;
+    const product = await productSchema.findOne({ _id: req.params.id });
+    if (!product) {
+      return res.status(404).json({ message: "products not found" });
+    }
+    console.log("product", product);
+    res.status(200).json({ reviews: product.Reviews });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

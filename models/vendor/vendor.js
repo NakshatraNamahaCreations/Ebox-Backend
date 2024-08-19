@@ -2,6 +2,22 @@ const mongoose = require("mongoose");
 // const bcrypt = require("bcrypt");
 // const jwt = require("jsonwebtoken");
 
+// Define Address Schema
+const addressSchema = new mongoose.Schema(
+  {
+    fullName: String,
+    mobileNumber: String,
+    houseFlatBlock: String,
+    roadArea: String,
+    cityDownVillage: String,
+    distric: String,
+    state: String,
+    pincode: String,
+    directions: String,
+  },
+  { _id: true }
+);
+
 // Define User Schema
 const vendorSchema = new mongoose.Schema({
   vendor_name: {
@@ -29,6 +45,25 @@ const vendorSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  prefession: {
+    type: String,
+  },
+  shop_name: String,
+  godown_name: String,
+  godown_pin: String,
+  shop_image: String,
+  shop_logo: String,
+  locality: String,
+  area: String,
+  city: String,
+  shop_location_pin: String,
+  gst_number: String,
+  gst_image: String,
+  pan_number: String,
+  pan_image: String,
+  vehicle_name: String,
+  number_plate: String,
+  vehicle: String,
   company_type: String,
   company_name: String,
   designation: String,
@@ -39,6 +74,7 @@ const vendorSchema = new mongoose.Schema({
   trand_license: String,
   cin_number: String,
   moa_number: String,
+  address: [addressSchema],
   createdAt: {
     type: Date,
     default: Date.now,

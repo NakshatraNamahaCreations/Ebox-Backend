@@ -2,8 +2,9 @@ const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
+    shop_name: String,
     vendor_id: String,
-    product_type: String,
+    vendor_name: String,
     product_name: String,
     product_image: [String],
     product_video: String,
@@ -19,7 +20,7 @@ const productSchema = new mongoose.Schema(
     product_weight: String,
     country_of_orgin: String,
     warranty: String,
-    manufature_name: String,
+    manufacturer_name: String,
     product_color: String,
     Specifications: [
       {

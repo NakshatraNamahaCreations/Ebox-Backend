@@ -7,6 +7,8 @@ const {
   getAllSellProduct,
   getProduct,
   writeReview,
+  getReview,
+  filteroutVendorProduct,
 } = require("../../controllers/vendor/product");
 const multer = require("multer");
 
@@ -49,7 +51,9 @@ router.post(
 router.get("/getallproduct", getAllProduct);
 router.get("/getrentalproduct", getAllRentalProduct);
 router.get("/getproduct/:id", getProduct);
+router.get("/getfilteroutproducts/:id", filteroutVendorProduct);
 router.get("/getsellproduct", getAllSellProduct);
 router.put("/review/:id", writeReview);
+router.get("/getreview/:id", getReview);
 
 module.exports = router;

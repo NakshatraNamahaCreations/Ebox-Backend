@@ -1,18 +1,20 @@
 const vendorSchema = require("../../models/vendor/vendor");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { default: mongoose } = require("mongoose");
 
 // Controller for registering a new user
 exports.vendorRegister = async (req, res) => {
   try {
-    const { vendor_name, email, mobilenumber, password } = req.body;
+    const { vendor_name, email, mobile_number, password, prefession } =
+      req.body;
 
     // Check if the user already exists
     const existingVendor = await vendorSchema.findOne({ email });
     if (existingVendor) {
       return res.status(400).json({ message: "User already exists" });
     }
-    const existingMobileNumber = await vendorSchema.findOne({ mobilenumber });
+    const existingMobileNumber = await vendorSchema.findOne({ mobile_number });
     if (existingMobileNumber) {
       return res.status(400).json({ message: "Mobile Number already exists" });
     }
@@ -25,15 +27,16 @@ exports.vendorRegister = async (req, res) => {
       vendor_name,
       email,
       password: hashedPassword,
-      mobilenumber,
+      mobile_number,
+      prefession,
     });
 
     await newVendor.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(200).json({ message: "Registeration Completed", newVendor });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -70,7 +73,6 @@ exports.vendorLogin = async (req, res) => {
         expiresIn: "7d",
       }
     );
-
     res.status(200).json({
       message: "Login Success",
       accessToken,
@@ -82,7 +84,57 @@ exports.vendorLogin = async (req, res) => {
   }
 };
 
-// Controller for getting user profile
+// login with mobile number
+exports.loginWithMobile = async (req, res) => {
+  const { mobile_number } = req.body;
+  try {
+    if (!mobile_number) {
+      return res.status(400).json({ error: "Mobile number required" });
+    }
+    // Find the vendor by email
+    const vendor = await vendorSchema.findOne({ mobile_number });
+    if (!vendor) {
+      return res.status(400).json({ message: "mobile number not match" });
+    }
+
+    const accessToken = jwt.sign({ id: vendor._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    const refreshToken = jwt.sign(
+      { id: vendor._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+    res.status(200).json({
+      message: "Login Success",
+      accessToken,
+      refreshToken,
+      vendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getAllFilteroutVendor = async (req, res) => {
+  try {
+    const findVendor = req.params.id;
+    console.log("findVendor", findVendor);
+    const allVendor = await vendorSchema.find();
+    const remaingVendor = allVendor.filter(
+      (vendor) => vendor._id !== findVendor
+    );
+    // console.log("remaingVendor", remaingVendor);
+    res.status(200).json({ remaingVendor: remaingVendor });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.getVendorProfile = async (req, res) => {
   try {
     const vendor = await vendorSchema
@@ -91,7 +143,7 @@ exports.getVendorProfile = async (req, res) => {
     if (!vendor) {
       return res.status(404).json({ message: "Profile not found" });
     }
-    res.json(vendor);
+    res.status(200).json(vendor);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -162,6 +214,39 @@ exports.updateVendorProfile = async (req, res) => {
       data: updatedVendor,
     });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.addAddress = async (req, res) => {
+  try {
+    let vendor = await vendorSchema.findOne({ _id: req.params.id });
+    if (!vendor) {
+      return res.status(404).json({
+        status: 404,
+        error: "vendor not found",
+      });
+    }
+    let { address } = req.body;
+
+    if (!Array.isArray(address)) {
+      address = [address]; // Convert to an array if it's not
+    }
+    address = address.map((addr) => ({
+      ...addr,
+      _id: new mongoose.Types.ObjectId(),
+    }));
+
+    vendor.address.push(...address);
+    await vendor.save();
+
+    res.status(200).json({
+      status: true,
+      success: "Address saved successfully",
+      data: vendor.address,
+    });
+  } catch (error) {
+    console.log("error", error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -19,7 +19,9 @@ mongoose
   .catch((err) => console.log("Database Not Connected!!!", err));
 
 const userauthRoutes = require("./routes/user/users");
+const vendorauthRoutes = require("./routes/vendor/vendor");
 const product = require("./routes/vendor/product");
+const order = require("./routes/vendor/order");
 
 // Middleware
 app.use(express.json());
@@ -31,7 +33,9 @@ app.use("/public", express.static("public"));
 
 // Routes
 app.use("/api/user", userauthRoutes);
+app.use("/api/vendor", vendorauthRoutes);
 app.use("/api/product", product);
+app.use("/api/order", order);
 
 // app.use("/api/users", require("./routes/users"));
 
