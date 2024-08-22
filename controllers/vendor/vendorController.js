@@ -6,18 +6,19 @@ const { default: mongoose } = require("mongoose");
 // Controller for registering a new user
 exports.vendorRegister = async (req, res) => {
   try {
-    const { vendor_name, email, mobile_number, password, prefession } =
+    const { vendor_name, email, mobile_number, password, profession } =
       req.body;
 
-    // Check if the user already exists
-    const existingVendor = await vendorSchema.findOne({ email });
-    if (existingVendor) {
-      return res.status(400).json({ message: "User already exists" });
-    }
     const existingMobileNumber = await vendorSchema.findOne({ mobile_number });
     if (existingMobileNumber) {
-      return res.status(400).json({ message: "Mobile Number already exists" });
+      return res.status(400).json({ message: "Mobile number already exists" });
     }
+
+    const existingVendor = await vendorSchema.findOne({ email });
+    if (existingVendor) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
     // Hash the password
     // const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -28,15 +29,68 @@ exports.vendorRegister = async (req, res) => {
       email,
       password: hashedPassword,
       mobile_number,
-      prefession,
+      profession,
     });
 
     await newVendor.save();
 
-    res.status(200).json({ message: "Registeration Completed", newVendor });
+    res.status(200).json({ message: "Please add business details", newVendor });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.addBusinessDetails = async (req, res) => {
+  try {
+    const vendorId = req.params.id;
+    console.log("vendorId", vendorId);
+    const findVendor = await vendorSchema.findOne({ _id: vendorId });
+    console.log("findVendor", findVendor);
+    if (!findVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+    const {
+      shop_name,
+      godown_name,
+      godown_pin,
+      gst_number,
+      pan_number,
+      vehicle_name,
+      number_plate,
+      vehicle_by,
+    } = req.body;
+
+    const shop_image_or_logo = req.files?.find(
+      (file) => file.fieldname === "shop_image_or_logo"
+    )?.filename;
+    const vehicle_image = req.files?.find(
+      (file) => file.fieldname === "vehicle_image"
+    )?.filename;
+
+    console.log("Request Body:", req.body);
+    console.log("Request Files:", req.files);
+
+    findVendor.shop_name = shop_name;
+    findVendor.godown_name = godown_name;
+    findVendor.godown_pin = godown_pin;
+    findVendor.gst_number = gst_number;
+    findVendor.pan_number = pan_number;
+    findVendor.vehicle_name = vehicle_name;
+    findVendor.number_plate = number_plate;
+    findVendor.vehicle_by = vehicle_by;
+
+    if (shop_image_or_logo) findVendor.shop_image_or_logo = shop_image_or_logo;
+    if (vehicle_image) findVendor.vehicle_image = vehicle_image;
+
+    await findVendor.save();
+    res.status(200).json({
+      message: "Add business",
+      vendor: findVendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -167,56 +221,56 @@ exports.getVendorProfile = async (req, res) => {
 //   }
 // };
 
-exports.updateVendorProfile = async (req, res) => {
-  try {
-    const vendorId = req.params.id;
-    const {
-      company_type,
-      company_name,
-      designation,
-      name,
-      mca_panel_member_name,
-      gst_number,
-      pan_number,
-      trand_license,
-      cin_number,
-      moa_number,
-    } = req.body;
-    let vendor = await vendorSchema.findOne({ _id: vendorId });
-    if (!vendor) {
-      return res.status(404).json({
-        status: 404,
-        error: "vendor not found",
-      });
-    }
-    vendor.company_type = company_type || vendor.company_type;
-    vendor.company_name = company_name || vendor.company_name;
-    vendor.designation = designation || vendor.designation;
-    vendor.name = name || vendor.name;
-    vendor.mca_panel_member_name =
-      mca_panel_member_name || vendor.mca_panel_member_name;
-    vendor.gst_number = gst_number || vendor.gst_number;
-    vendor.pan_number = pan_number || vendor.pan_number;
-    vendor.trand_license = trand_license || vendor.trand_license;
-    vendor.cin_number = cin_number || vendor.cin_number;
-    vendor.moa_number = moa_number || vendor.moa_number;
+// exports.updateVendorProfile = async (req, res) => {
+//   try {
+//     const vendorId = req.params.id;
+//     const {
+//       company_type,
+//       company_name,
+//       designation,
+//       name,
+//       mca_panel_member_name,
+//       gst_number,
+//       pan_number,
+//       trand_license,
+//       cin_number,
+//       moa_number,
+//     } = req.body;
+//     let vendor = await vendorSchema.findOne({ _id: vendorId });
+//     if (!vendor) {
+//       return res.status(404).json({
+//         status: 404,
+//         error: "vendor not found",
+//       });
+//     }
+//     vendor.company_type = company_type || vendor.company_type;
+//     vendor.company_name = company_name || vendor.company_name;
+//     vendor.designation = designation || vendor.designation;
+//     vendor.name = name || vendor.name;
+//     vendor.mca_panel_member_name =
+//       mca_panel_member_name || vendor.mca_panel_member_name;
+//     vendor.gst_number = gst_number || vendor.gst_number;
+//     vendor.pan_number = pan_number || vendor.pan_number;
+//     vendor.trand_license = trand_license || vendor.trand_license;
+//     vendor.cin_number = cin_number || vendor.cin_number;
+//     vendor.moa_number = moa_number || vendor.moa_number;
 
-    let updatedVendor = await vendorSchema.findOneAndUpdate(
-      { _id: vendorId },
-      user,
-      {
-        new: true,
-      }
-    );
-    res.status(200).json({
-      status: true,
-      success: "Details Added",
-      data: updatedVendor,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+//     let updatedVendor = await vendorSchema.findOneAndUpdate(
+//       { _id: vendorId },
+//       user,
+//       {
+//         new: true,
+//       }
+//     );
+//     res.status(200).json({
+//       status: true,
+//       success: "Details Added",
+//       data: updatedVendor,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 exports.addAddress = async (req, res) => {
   try {
