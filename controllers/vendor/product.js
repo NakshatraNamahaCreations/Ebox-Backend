@@ -27,6 +27,7 @@ exports.addProduct = async (req, res) => {
       manufacturer_name,
       product_color,
       Specifications,
+      retuning_date,
     } = req.body;
     // Ensure Specifications are in the correct format
     let specificationsArray;
@@ -71,6 +72,7 @@ exports.addProduct = async (req, res) => {
       warranty,
       manufacturer_name,
       product_color,
+      retuning_date,
       Specifications: specificationsArray, // This will include all the specifications
     });
     await newProduct.save();

@@ -30,13 +30,20 @@ exports.vendorRegister = async (req, res) => {
       password: hashedPassword,
       mobile_number,
       profession,
+      is_approved: false,
     });
 
     await newVendor.save();
 
     res.status(200).json({ message: "Please add business details", newVendor });
   } catch (error) {
-    console.error(error);
+    console.error("error:", error);
+    // Handle specific validation errors
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: errors.join(", ") });
+    }
+
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -61,32 +68,41 @@ exports.addBusinessDetails = async (req, res) => {
       vehicle_by,
     } = req.body;
 
-    const shop_image_or_logo = req.files?.find(
-      (file) => file.fieldname === "shop_image_or_logo"
-    )?.filename;
-    const vehicle_image = req.files?.find(
-      (file) => file.fieldname === "vehicle_image"
-    )?.filename;
+    const shopImageOrLogo = req.files["shop_image_or_logo"]
+      ? req.files["shop_image_or_logo"][0].path
+      : null;
+    const vehicleImage = req.files["vehicle_image"]
+      ? req.files["vehicle_image"][0].path
+      : null;
 
-    console.log("Request Body:", req.body);
-    console.log("Request Files:", req.files);
+    // console.log("Request Body:", req.body);
+    // console.log("Request Files:", req.files);
 
-    findVendor.shop_name = shop_name;
-    findVendor.godown_name = godown_name;
-    findVendor.godown_pin = godown_pin;
-    findVendor.gst_number = gst_number;
-    findVendor.pan_number = pan_number;
-    findVendor.vehicle_name = vehicle_name;
-    findVendor.number_plate = number_plate;
-    findVendor.vehicle_by = vehicle_by;
+    const updatedVendor = await vendorSchema.findByIdAndUpdate(
+      vendorId,
+      {
+        shop_name: shop_name,
+        godown_name: godown_name,
+        godown_pin: godown_pin,
+        gst_number: gst_number,
+        pan_number: pan_number,
+        vehicle_name: vehicle_name,
+        number_plate: number_plate,
+        vehicle_by: vehicle_by,
+        shop_image_or_logo: shopImageOrLogo,
+        vehicle_image: vehicleImage,
+      },
+      { new: true }
+    );
 
-    if (shop_image_or_logo) findVendor.shop_image_or_logo = shop_image_or_logo;
-    if (vehicle_image) findVendor.vehicle_image = vehicle_image;
+    if (!updatedVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
 
-    await findVendor.save();
     res.status(200).json({
-      message: "Add business",
-      vendor: findVendor,
+      message: "Shop details added successfully! Please add business address",
+      // message: "Shop details updated successfully",
+      vendorShop: updatedVendor,
     });
   } catch (error) {
     console.error(error);
@@ -94,7 +110,6 @@ exports.addBusinessDetails = async (req, res) => {
   }
 };
 
-// Controller for vendor login
 exports.vendorLogin = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -145,12 +160,14 @@ exports.loginWithMobile = async (req, res) => {
     if (!mobile_number) {
       return res.status(400).json({ error: "Mobile number required" });
     }
-    // Find the vendor by email
+    // Find the vendor by mobile number
     const vendor = await vendorSchema.findOne({ mobile_number });
     if (!vendor) {
       return res.status(400).json({ message: "mobile number not match" });
     }
-
+    if (vendor.is_approved === false) {
+      return res.status(400).json({ message: "Your account is not approved!" });
+    }
     const accessToken = jwt.sign({ id: vendor._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
@@ -191,16 +208,18 @@ exports.getAllFilteroutVendor = async (req, res) => {
 
 exports.getVendorProfile = async (req, res) => {
   try {
+    console.log("Received Vendor ID:", req.params);
     const vendor = await vendorSchema
-      .findById({ _id: req.params.id })
+      .findOne({ _id: req.params.id })
       .select("-password");
+    console.log("Vendor data from DB:", vendor);
     if (!vendor) {
       return res.status(404).json({ message: "Profile not found" });
     }
     res.status(200).json(vendor);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in getVendorProfile:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

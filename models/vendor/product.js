@@ -23,6 +23,7 @@ const productSchema = new mongoose.Schema(
     manufacturer_name: String,
     product_color: String,
     product_type: String,
+    retuning_date: Number,
     Specifications: [
       {
         name: { type: String, required: true },
