@@ -51,14 +51,14 @@ exports.login = async (req, res) => {
     }
     // console.log("User found:", user);
 
-    console.log("user", user.password);
+    // console.log("user", user.password);
 
     // Check if the password is correct
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Password not match" });
     }
-    console.log("Password match:", isMatch);
+    // console.log("Password match:", isMatch);
     // Generate JWT token
     const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",

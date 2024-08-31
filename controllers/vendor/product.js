@@ -128,6 +128,7 @@ exports.getProduct = async (req, res) => {
   }
 };
 
+// find and get the products exclued vendor id
 exports.filteroutVendorProduct = async (req, res) => {
   try {
     let vendorId = req.params.id;
@@ -147,6 +148,21 @@ exports.filteroutVendorProduct = async (req, res) => {
   }
 };
 
+exports.getVendorProduct = async (req, res) => {
+  try {
+    let vendorId = req.params.id;
+    let allProductFromVendor = await productSchema.find({
+      vendor_id: vendorId,
+    });
+    if (allProductFromVendor) {
+      return res.status(200).json({ products: allProductFromVendor });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.getReview = async (req, res) => {
   try {
     // let productId = req.params.id;
@@ -154,7 +170,7 @@ exports.getReview = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "products not found" });
     }
-    console.log("product", product);
+    // console.log("product", product);
     res.status(200).json({ reviews: product.Reviews });
   } catch (error) {
     console.error(error);
@@ -164,7 +180,9 @@ exports.getReview = async (req, res) => {
 
 exports.getAllSellProduct = async (req, res) => {
   try {
-    const allSellProduct = await productSchema.find({ product_type: "sell" });
+    const allSellProduct = await productSchema
+      .find({ product_type: "sell" })
+      .sort({ _id: -1 });
 
     if (allSellProduct.length < 0) {
       return res.status(404).json({ message: "products not found" });

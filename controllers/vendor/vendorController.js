@@ -223,6 +223,20 @@ exports.getVendorProfile = async (req, res) => {
   }
 };
 
+exports.getAllVendor = async (req, res) => {
+  try {
+    const allVendor = await vendorSchema.find();
+    if (allVendor.length > 0) {
+      return res.status(200).json(allVendor);
+    } else {
+      return res.status(404).json({ message: "No vendor found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Controller for updating user profile
 // exports.updateProfile = async (req, res) => {
 //   try {

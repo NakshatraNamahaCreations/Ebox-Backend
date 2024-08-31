@@ -9,6 +9,7 @@ const {
   writeReview,
   getReview,
   filteroutVendorProduct,
+  getVendorProduct,
 } = require("../../controllers/vendor/product");
 const multer = require("multer");
 
@@ -56,6 +57,7 @@ router.get("/getrentalproduct", getAllRentalProduct);
 router.get("/getproduct/:id", getProduct);
 router.get("/getfilteroutproducts/:id", filteroutVendorProduct);
 router.get("/getsellproduct", getAllSellProduct);
+router.get("/getvendorproduct/:id", getVendorProduct);
 router.put("/review/:id", writeReview);
 router.get("/getreview/:id", getReview);
 

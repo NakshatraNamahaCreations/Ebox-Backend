@@ -9,6 +9,7 @@ const {
   // updateVendorProfile,
   deleteVendorProfile,
   addAddress,
+  getAllVendor,
   loginWithMobile,
   getAllFilteroutVendor,
 } = require("../../controllers/vendor/vendorController");
@@ -44,6 +45,7 @@ router.put(
 router.post("/login", vendorLogin);
 router.post("/loginwithmobilenumber", loginWithMobile);
 router.get("/getprofile/:id", getVendorProfile);
+router.get("/getallvendor", getAllVendor);
 // router.put("/update-profile/:id", updateVendorProfile);
 router.get("/filterout-vendors/:id", getAllFilteroutVendor);
 router.delete("/delete-vendor-profile", deleteVendorProfile);
