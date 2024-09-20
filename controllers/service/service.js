@@ -83,13 +83,27 @@ exports.addRequirements = async (req, res) => {
 exports.getAllService = async (req, res) => {
   try {
     let data = await serviceSchema.find().sort({ _id: -1 });
-    res.status(200).json({ message: "success", data: data });
+    return res.status(200).json({ message: "success", data: data });
   } catch (err) {
     console.log("error", err);
     res.status(400).json({ message: "fail" });
   }
 };
-
+exports.getServiceByServiceName = async (req, res) => {
+  try {
+    const serviceName = req.params.name;
+    let data = await serviceSchema.findOne({
+      service_name: serviceName,
+    });
+    if (!data) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+    return res.status(200).json({ message: "success", service: data });
+  } catch (err) {
+    console.log("error", err);
+    res.status(400).json({ message: "fail" });
+  }
+};
 exports.deleteService = async (req, res) => {
   try {
     const _id = req.params.id;

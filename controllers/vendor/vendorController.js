@@ -6,8 +6,14 @@ const { default: mongoose } = require("mongoose");
 // Controller for registering a new user
 exports.vendorRegister = async (req, res) => {
   try {
-    const { vendor_name, email, mobile_number, password, profession } =
-      req.body;
+    const {
+      vendor_name,
+      email,
+      mobile_number,
+      password,
+      profession,
+      profession_category,
+    } = req.body;
 
     const existingMobileNumber = await vendorSchema.findOne({ mobile_number });
     if (existingMobileNumber) {
@@ -30,6 +36,7 @@ exports.vendorRegister = async (req, res) => {
       password: hashedPassword,
       mobile_number,
       profession,
+      profession_category,
       is_approved: false,
     });
 
@@ -103,6 +110,101 @@ exports.addBusinessDetails = async (req, res) => {
       message: "Shop details added successfully! Please add business address",
       // message: "Shop details updated successfully",
       vendorShop: updatedVendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.addServiceRequiredFields = async (req, res) => {
+  try {
+    const vendorId = req.params.id;
+    console.log("vendorId", vendorId);
+    const { requirement_fields } = req.body;
+    // console.log("requirement_fields", requirement_fields);
+
+    if (!requirement_fields || Object.keys(requirement_fields).length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No requirement fields provided" });
+    }
+    const findVendor = await vendorSchema.findOne({ _id: vendorId });
+    // console.log("findVendor", findVendor);
+    if (!findVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    // Update existing fields and add new ones if they don't exist
+    const updatedFields = [...findVendor.requirement_fields];
+
+    Object.keys(requirement_fields).forEach((parameter) => {
+      const existingFieldIndex = updatedFields.findIndex(
+        (field) => field.parameter === parameter
+      );
+
+      if (existingFieldIndex !== -1) {
+        // Update existing field
+        updatedFields[existingFieldIndex].value = requirement_fields[parameter];
+      } else {
+        // Add new field
+        updatedFields.push({
+          parameter: parameter,
+          value: requirement_fields[parameter],
+        });
+      }
+    });
+
+    findVendor.requirement_fields = updatedFields;
+
+    await findVendor.save();
+    res.status(200).json({
+      message: "Service people business details added successfully",
+      data: findVendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.addServiceAdditionalDetails = async (req, res) => {
+  try {
+    const vendorId = req.params.id;
+    console.log("vendorId", vendorId);
+    const findVendor = await vendorSchema.findOne({ _id: vendorId });
+    console.log("findVendor", findVendor);
+    if (!findVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+    const { gst_number, pan_number } = req.body;
+
+    // Check if images exist
+    const additional_image = req.files.images
+      ? req.files.images?.map((file) => file.path)
+      : [];
+
+    // console.log("Request Body:", req.body);
+    // console.log("Request Files:", req.files);
+
+    const updatedVendor = await vendorSchema.findByIdAndUpdate(
+      vendorId,
+      {
+        gst_number: gst_number,
+        pan_number: pan_number,
+        additional_image,
+      },
+      { new: true }
+    );
+
+    if (!updatedVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    res.status(200).json({
+      message: "Shop details added successfully! Please add business address",
+      // message: "Shop details updated successfully",
+      vendor: updatedVendor,
     });
   } catch (error) {
     console.error(error);

@@ -18,6 +18,12 @@ const addressSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const requirementFieldSchema = new mongoose.Schema({
+  field_type: { type: String, required: true },
+  parameter: { type: String, required: true },
+  // value: { type: mongoose.Schema.Types.Mixed }, // Adjust based on the type of data you expect
+});
+
 // Define User Schema
 const vendorSchema = new mongoose.Schema({
   vendor_name: {
@@ -48,6 +54,7 @@ const vendorSchema = new mongoose.Schema({
   profession: {
     type: String,
   },
+  profession_category: String,
   shop_name: String,
   godown_name: String,
   godown_pin: String,
@@ -59,6 +66,8 @@ const vendorSchema = new mongoose.Schema({
   vehicle_image: String,
   vehicle_by: String,
   is_approved: Boolean,
+  requirement_fields: Array,
+  additional_image: [String],
   address: [addressSchema],
   createdAt: {
     type: Date,
