@@ -124,11 +124,11 @@ exports.addServiceRequiredFields = async (req, res) => {
     const { requirement_fields } = req.body;
     // console.log("requirement_fields", requirement_fields);
 
-    if (!requirement_fields || Object.keys(requirement_fields).length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No requirement fields provided" });
-    }
+    // if (!requirement_fields || Object.keys(requirement_fields).length === 0) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "No requirement fields provided" });
+    // }
     const findVendor = await vendorSchema.findOne({ _id: vendorId });
     // console.log("findVendor", findVendor);
     if (!findVendor) {
@@ -292,11 +292,12 @@ exports.loginWithMobile = async (req, res) => {
   }
 };
 
+// add final check for find only approved vendor
 exports.getAllFilteroutVendor = async (req, res) => {
   try {
     const findVendor = req.params.id;
     console.log("findVendor", findVendor);
-    const allVendor = await vendorSchema.find();
+    const allVendor = await vendorSchema.find({});
     const remaingVendor = allVendor.filter(
       (vendor) => vendor._id !== findVendor
     );
@@ -327,9 +328,43 @@ exports.getVendorProfile = async (req, res) => {
 
 exports.getAllVendor = async (req, res) => {
   try {
-    const allVendor = await vendorSchema.find();
+    const allVendor = await vendorSchema.find({ is_approved: true });
     if (allVendor.length > 0) {
       return res.status(200).json(allVendor);
+    } else {
+      return res.status(404).json({ message: "No vendor found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getOnlyProductVendor = async (req, res) => {
+  try {
+    const productVendor = await vendorSchema.find({
+      profession: "Vendor & Seller",
+      is_approved: true,
+    });
+    if (productVendor.length > 0) {
+      return res.status(200).json({ data: productVendor });
+    } else {
+      return res.status(404).json({ message: "No vendor found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getVendorByServiceName = async (req, res) => {
+  try {
+    const vendorList = await vendorSchema.find({
+      profession: req.params.name,
+      is_approved: true,
+    });
+    if (vendorList.length > 0) {
+      return res.status(200).json({ data: vendorList });
     } else {
       return res.status(404).json({ message: "No vendor found" });
     }

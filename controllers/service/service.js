@@ -3,8 +3,13 @@ const serviceSchema = require("../../models/service/service");
 exports.addService = async (req, res) => {
   try {
     const { service_name } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: "File is required" });
+    }
     const service = new serviceSchema({
       service_name,
+      service_image: req.file.filename,
     });
     await service.save();
     res.status(200).json({
@@ -104,6 +109,7 @@ exports.getServiceByServiceName = async (req, res) => {
     res.status(400).json({ message: "fail" });
   }
 };
+
 exports.deleteService = async (req, res) => {
   try {
     const _id = req.params.id;

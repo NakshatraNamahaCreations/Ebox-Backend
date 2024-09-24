@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema(
     product_video: String,
     product_category: String,
     product_price: Number,
+    approval_status: Boolean,
     mrp_rate: Number,
     discount: Number,
     brand: String,

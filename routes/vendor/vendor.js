@@ -14,6 +14,8 @@ const {
   getAllFilteroutVendor,
   addServiceRequiredFields,
   addServiceAdditionalDetails,
+  getOnlyProductVendor,
+  getVendorByServiceName,
 } = require("../../controllers/vendor/vendorController");
 // const authMiddleware = require("../../controllers/middleware/authMiddleware");
 const multer = require("multer");
@@ -66,8 +68,9 @@ router.put(
 router.post("/loginwithmobilenumber", loginWithMobile);
 router.get("/getprofile/:id", getVendorProfile);
 router.get("/getallvendor", getAllVendor);
-// router.put("/update-profile/:id", updateVendorProfile);
+router.get("/get-product-vendor", getOnlyProductVendor);
 router.get("/filterout-vendors/:id", getAllFilteroutVendor);
+router.get("/get-vendor-by-servicename/:name", getVendorByServiceName);
 router.delete("/delete-vendor-profile", deleteVendorProfile);
 router.put("/add-address/:id", addAddress);
 

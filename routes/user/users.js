@@ -12,10 +12,10 @@ const {
 
 // Route for refreshing token
 router.post("/refresh-token", refreshToken);
-router.post("/register", register);
-router.post("/login", login);
-router.get("/getprofile/:id", getProfile);
-router.put("/updateprofile/:id", updateProfile);
+router.post("/user-register", register);
+router.post("/user-login", login);
+router.get("/get-user-profile/:id", getProfile);
+router.put("/update-profile/:id", updateProfile);
 router.delete("/profile", deleteUser);
 
 module.exports = router;

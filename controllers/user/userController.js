@@ -30,7 +30,7 @@ exports.register = async (req, res) => {
 
     await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully", newUser });
+    res.status(201).json({ message: "Account Created Successfully!", newUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -122,39 +122,38 @@ exports.updateProfile = async (req, res) => {
       company_type,
       company_name,
       designation,
-      name,
-      mca_panel_member_name,
       gst_number,
       pan_number,
       trand_license,
       cin_number,
-      moa_number,
     } = req.body;
-    let user = await UserSchema.findOne({ _id: userId });
-    if (!user) {
+    let findUser = await UserSchema.findOne({ _id: userId });
+    if (!findUser) {
       return res.status(404).json({
         status: 404,
         error: "user not found",
       });
     }
-    user.company_type = company_type || user.company_type;
-    user.company_name = company_name || user.company_name;
-    user.designation = designation || user.designation;
-    user.name = name || user.name;
-    user.mca_panel_member_name =
-      mca_panel_member_name || user.mca_panel_member_name;
-    user.gst_number = gst_number || user.gst_number;
-    user.pan_number = pan_number || user.pan_number;
-    user.trand_license = trand_license || user.trand_license;
-    user.cin_number = cin_number || user.cin_number;
-    user.moa_number = moa_number || user.moa_number;
-
-    let updatedUser = await UserSchema.findOneAndUpdate({ _id: userId }, user, {
-      new: true,
+    findUser.company_profile.push({
+      company_type,
+      company_name,
+      designation,
+      gst_number,
+      pan_number,
+      trand_license,
+      cin_number,
     });
+
+    let updatedUser = await UserSchema.findOneAndUpdate(
+      { _id: userId },
+      findUser,
+      {
+        new: true,
+      }
+    );
     res.status(200).json({
       status: true,
-      success: "Details Added",
+      success: "Company Details Added",
       data: updatedUser,
     });
   } catch (error) {

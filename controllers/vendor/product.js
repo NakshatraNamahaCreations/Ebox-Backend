@@ -73,6 +73,7 @@ exports.addProduct = async (req, res) => {
       manufacturer_name,
       product_color,
       retuning_date,
+      approval_status: false,
       Specifications: specificationsArray, // This will include all the specifications
     });
     await newProduct.save();
@@ -103,11 +104,38 @@ exports.getAllRentalProduct = async (req, res) => {
   try {
     const allRentalProduct = await productSchema.find({
       product_type: "rental",
+      approval_status: true,
     });
     if (allRentalProduct.length < 0) {
+      console.log("no products found");
       return res.status(404).json({ message: "products not found" });
     }
     res.status(200).json(allRentalProduct);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getParticularVendorProduct = async (req, res) => {
+  try {
+    const vendorId = req.params.id;
+
+    // Query the database for all rental products with the vendor ID
+    const allRentalProducts = await productSchema.find({
+      vendor_id: vendorId,
+      product_type: "rental",
+      approval_status: true,
+    });
+
+    // Check if no products are found
+    if (!allRentalProducts || allRentalProducts.length === 0) {
+      console.log("No products found");
+      return res.status(404).json({ message: "Products not found" });
+    }
+
+    // Return the found products
+    res.status(200).json(allRentalProducts);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -128,11 +156,11 @@ exports.getProduct = async (req, res) => {
   }
 };
 
-// find and get the products exclued vendor id
+// find and get the products exclued vendor id // check thw approval status
 exports.filteroutVendorProduct = async (req, res) => {
   try {
     let vendorId = req.params.id;
-    let allSellingProduct = await productSchema.find();
+    let allSellingProduct = await productSchema.find({ approval_status: true });
     // const vendorProducts  = await productSchema.find({ vendor_id: vendorId });
     let remainingProducts = allSellingProduct.filter(
       (product) => product.vendor_id.toString() !== vendorId
@@ -181,7 +209,7 @@ exports.getReview = async (req, res) => {
 exports.getAllSellProduct = async (req, res) => {
   try {
     const allSellProduct = await productSchema
-      .find({ product_type: "sell" })
+      .find({ product_type: "sell", approval_status: true })
       .sort({ _id: -1 });
 
     if (allSellProduct.length < 0) {

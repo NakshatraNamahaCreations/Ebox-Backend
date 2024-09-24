@@ -26,8 +26,10 @@ const order = require("./routes/vendor/order");
 const team = require("./routes/team/team");
 const service = require("./routes/service/service");
 const subService = require("./routes/service/sub-service");
-const { default: axios } = require("axios");
+// user
+const userorder = require("./routes/user/Order");
 
+const { default: axios } = require("axios");
 // Middleware
 app.use(express.json());
 app.use(morgan("dev"));
@@ -44,6 +46,8 @@ app.use("/api/order", order);
 app.use("/api/team", team);
 app.use("/api/service", service);
 app.use("/api/sub-service", subService);
+// user
+app.use("/api/userorder", userorder);
 
 // app.use("/api/users", require("./routes/users"));
 
