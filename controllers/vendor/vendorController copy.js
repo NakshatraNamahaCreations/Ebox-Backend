@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { default: mongoose } = require("mongoose");
 
+// Controller for registering a new user
 exports.vendorRegister = async (req, res) => {
   try {
     const {
@@ -24,6 +25,7 @@ exports.vendorRegister = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
+    // Hash the password
     // const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -43,6 +45,7 @@ exports.vendorRegister = async (req, res) => {
     res.status(200).json({ message: "Please add business details", newVendor });
   } catch (error) {
     console.error("error:", error);
+    // Handle specific validation errors
     if (error.name === "ValidationError") {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: errors.join(", ") });
@@ -114,174 +117,40 @@ exports.addVendorBusinessDetails = async (req, res) => {
   }
 };
 
-exports.addServiceUserBusinessDetails = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    console.log("userId", userId);
-    const findUser = await vendorSchema.findOne({ _id: userId });
-    console.log("findUser", findUser);
-    if (!findUser) {
-      return res.status(401).json({ message: "user not found" });
-    }
-    const {
-      experience_in_business,
-      year_of_establishment,
-      website_url,
-      gst_number,
-      business_hours,
-      shop_name,
-    } = req.body;
-
-    const shopImageOrLogo = req.files["shop_image_or_logo"]
-      ? req.files["shop_image_or_logo"][0].path
-      : null;
-
-    const parsedBusinessHours = Array.isArray(business_hours)
-      ? business_hours
-      : JSON.parse(business_hours);
-
-    const updatedVendor = await vendorSchema.findByIdAndUpdate(
-      userId,
-      {
-        shop_name: shop_name,
-        year_of_establishment: year_of_establishment,
-        website_url: website_url,
-        gst_number: gst_number,
-        business_hours: parsedBusinessHours,
-        experience_in_business: experience_in_business,
-        shop_image_or_logo: shopImageOrLogo,
-      },
-      { new: true }
-    );
-
-    res.status(200).json({
-      message: "Business details added successfully",
-      serviceUser: updatedVendor,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-exports.addAdditionalServices = async (req, res) => {
-  try {
-    const userId = req.params.id;
-
-    // Find the user by ID
-    const findUser = await vendorSchema.findOne({ _id: userId });
-    if (!findUser) {
-      return res.status(401).json({ message: "User not found" });
-    }
-
-    const { additional_services } = req.body;
-
-    // Ensure that additional_services is a valid JSON string
-    let fieldsObj;
-    try {
-      fieldsObj = JSON.parse(additional_services);
-    } catch (error) {
-      return res
-        .status(400)
-        .json({ message: "Invalid additional services format" });
-    }
-
-    // Start with the user's existing additional_services, if any
-    const updatedFields = Array.isArray(findUser.additional_services)
-      ? [...findUser.additional_services]
-      : [];
-
-    // Iterate over the incoming fields and update existing or add new fields
-    Object.keys(fieldsObj).forEach((parameter) => {
-      const existingFieldIndex = updatedFields.findIndex(
-        (field) => field.parameter === parameter
-      );
-
-      if (existingFieldIndex !== -1) {
-        // Update existing field value
-        updatedFields[existingFieldIndex].value = fieldsObj[parameter];
-      } else {
-        // Add new field if it doesn't exist
-        updatedFields.push({
-          parameter: parameter,
-          value: fieldsObj[parameter],
-        });
-      }
-    });
-
-    // Update the user's additional_services field
-    findUser.additional_services = updatedFields;
-
-    // Process uploaded images (if any)
-    if (req.files && req.files.additional_images) {
-      const service_images = req.files.additional_images.map(
-        (file) => file.path
-      );
-      findUser.additional_images = service_images; // Make sure this matches the schema field
-    } else {
-      console.log("No images uploaded or wrong field name.");
-    }
-
-    // Save the updated user document
-    await findUser.save();
-
-    // Return success response
-    res.status(200).json({
-      message: "Services added successfully",
-      serviceUser: findUser,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// // NOT REQUIRED
 // exports.addServiceRequiredFields = async (req, res) => {
 //   try {
 //     const vendorId = req.params.id;
 //     console.log("vendorId", vendorId);
-//     const { requirement_fields, shop_name } = req.body;
+//     const { requirement_fields } = req.body;
+//     // console.log("requirement_fields", requirement_fields);
 
-//     const shop_image_or_logo = req.files["shop_image_or_logo"]
-//       ? req.files["shop_image_or_logo"][0].path
-//       : null;
-
-//     // const shop_image_or_logo = req.file
-//     //   ? `public/vendor_profile/${req.file.filename}`
-//     //   : null;
-
+//     // if (!requirement_fields || Object.keys(requirement_fields).length === 0) {
+//     //   return res
+//     //     .status(400)
+//     //     .json({ message: "No requirement fields provided" });
+//     // }
 //     const findVendor = await vendorSchema.findOne({ _id: vendorId });
+//     // console.log("findVendor", findVendor);
 //     if (!findVendor) {
 //       return res.status(404).json({ message: "Vendor not found" });
 //     }
 
-//     if (shop_name) {
-//       findVendor.shop_name = shop_name;
-//     }
-
-//     // const shopImageOrLogo = req.files["shop_image_or_logo"]
-//     // ? req.files["shop_image_or_logo"][0].path
-//     // : null;
-
-//     if (shop_image_or_logo) {
-//       findVendor.shop_image_or_logo = shop_image_or_logo;
-//     }
-
+//     // Update existing fields and add new ones if they don't exist
 //     const updatedFields = [...findVendor.requirement_fields];
-//     const fieldsObj = JSON.parse(requirement_fields);
 
-//     Object.keys(fieldsObj).forEach((parameter) => {
+//     Object.keys(requirement_fields).forEach((parameter) => {
 //       const existingFieldIndex = updatedFields.findIndex(
 //         (field) => field.parameter === parameter
 //       );
 
 //       if (existingFieldIndex !== -1) {
+//         // Update existing field
 //         updatedFields[existingFieldIndex].value = requirement_fields[parameter];
 //       } else {
+//         // Add new field
 //         updatedFields.push({
 //           parameter: parameter,
-//           value: fieldsObj[parameter],
+//           value: requirement_fields[parameter],
 //         });
 //       }
 //     });
@@ -299,50 +168,166 @@ exports.addAdditionalServices = async (req, res) => {
 //   }
 // };
 
-// // NOT REQUIRED
-// exports.addServiceAdditionalDetails = async (req, res) => {
-//   try {
-//     const vendorId = req.params.id;
-//     console.log("vendorId", vendorId);
-//     const findVendor = await vendorSchema.findOne({ _id: vendorId });
-//     console.log("findVendor", findVendor);
-//     if (!findVendor) {
-//       return res.status(404).json({ message: "Vendor not found" });
-//     }
-//     const { gst_number, pan_number } = req.body;
+exports.addServiceUserBusinessDetails = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    console.log("userId", userId);
+    const findUser = await vendorSchema.findOne({ _id: userId });
+    console.log("findUser", findUser);
+    if (!findUser) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    const {
+      experience_in_business,
+      year_of_establishment,
+      website,
+      gst_number,
+      business_hours,
+      shop_name,
+    } = req.body;
 
-//     // Check if images exist
-//     const additional_image = req.files.images
-//       ? req.files.images?.map((file) => file.path)
-//       : [];
+    const shopImageOrLogo = req.files["shop_image_or_logo"]
+      ? req.files["shop_image_or_logo"][0].path
+      : null;
 
-//     // console.log("Request Body:", req.body);
-//     // console.log("Request Files:", req.files);
+    // console.log("Request Body:", req.body);
+    // console.log("Request Files:", req.files);
 
-//     const updatedVendor = await vendorSchema.findByIdAndUpdate(
-//       vendorId,
-//       {
-//         gst_number: gst_number,
-//         pan_number: pan_number,
-//         additional_image,
-//       },
-//       { new: true }
-//     );
+    const updatedVendor = await vendorSchema.findByIdAndUpdate(
+      userId,
+      {
+        shop_name: shop_name,
+        year_of_establishment: year_of_establishment,
+        website: website,
+        gst_number: gst_number,
+        business_hours: business_hours,
+        experience_in_business: experience_in_business,
+        shop_image_or_logo: shopImageOrLogo,
+      },
+      { new: true }
+    );
 
-//     if (!updatedVendor) {
-//       return res.status(404).json({ message: "Vendor not found" });
-//     }
+    if (!updatedVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+    res.status(200).json({
+      message: "Business details added successfully",
+      // message: "Shop details updated successfully",
+      serviceUser: updatedVendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
-//     res.status(200).json({
-//       message: "Shop details added successfully! Please add business address",
-//       // message: "Shop details updated successfully",
-//       vendor: updatedVendor,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
+// NOT REQUIRED
+exports.addServiceRequiredFields = async (req, res) => {
+  try {
+    const vendorId = req.params.id;
+    console.log("vendorId", vendorId);
+    const { requirement_fields, shop_name } = req.body;
+
+    const shop_image_or_logo = req.files["shop_image_or_logo"]
+      ? req.files["shop_image_or_logo"][0].path
+      : null;
+
+    // const shop_image_or_logo = req.file
+    //   ? `public/vendor_profile/${req.file.filename}`
+    //   : null;
+
+    const findVendor = await vendorSchema.findOne({ _id: vendorId });
+    if (!findVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (shop_name) {
+      findVendor.shop_name = shop_name;
+    }
+
+    // const shopImageOrLogo = req.files["shop_image_or_logo"]
+    // ? req.files["shop_image_or_logo"][0].path
+    // : null;
+
+    if (shop_image_or_logo) {
+      findVendor.shop_image_or_logo = shop_image_or_logo;
+    }
+
+    const updatedFields = [...findVendor.requirement_fields];
+    const fieldsObj = JSON.parse(requirement_fields);
+
+    Object.keys(fieldsObj).forEach((parameter) => {
+      const existingFieldIndex = updatedFields.findIndex(
+        (field) => field.parameter === parameter
+      );
+
+      if (existingFieldIndex !== -1) {
+        updatedFields[existingFieldIndex].value = requirement_fields[parameter];
+      } else {
+        updatedFields.push({
+          parameter: parameter,
+          value: fieldsObj[parameter],
+        });
+      }
+    });
+
+    findVendor.requirement_fields = updatedFields;
+
+    await findVendor.save();
+    res.status(200).json({
+      message: "Service people business details added successfully",
+      data: findVendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// NOT REQUIRED
+exports.addServiceAdditionalDetails = async (req, res) => {
+  try {
+    const vendorId = req.params.id;
+    console.log("vendorId", vendorId);
+    const findVendor = await vendorSchema.findOne({ _id: vendorId });
+    console.log("findVendor", findVendor);
+    if (!findVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+    const { gst_number, pan_number } = req.body;
+
+    // Check if images exist
+    const additional_image = req.files.images
+      ? req.files.images?.map((file) => file.path)
+      : [];
+
+    // console.log("Request Body:", req.body);
+    // console.log("Request Files:", req.files);
+
+    const updatedVendor = await vendorSchema.findByIdAndUpdate(
+      vendorId,
+      {
+        gst_number: gst_number,
+        pan_number: pan_number,
+        additional_image,
+      },
+      { new: true }
+    );
+
+    if (!updatedVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    res.status(200).json({
+      message: "Shop details added successfully! Please add business address",
+      // message: "Shop details updated successfully",
+      vendor: updatedVendor,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 exports.vendorLogin = async (req, res) => {
   const { email, password } = req.body;

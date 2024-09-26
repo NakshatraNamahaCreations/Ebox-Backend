@@ -66,8 +66,20 @@ const vendorSchema = new mongoose.Schema({
   vehicle_image: String,
   vehicle_by: String,
   is_approved: Boolean,
-  requirement_fields: Array,
-  additional_image: [String],
+  // requirement_fields: Array,
+
+  experience_in_business: String,
+  year_of_establishment: String,
+  website_url: String,
+  business_hours: [
+    {
+      day: String,
+      start_time: String,
+      end_time: String,
+    },
+  ],
+  additional_services: Array,
+  additional_images: [String],
   address: [addressSchema],
   createdAt: {
     type: Date,

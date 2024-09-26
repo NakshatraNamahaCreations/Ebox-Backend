@@ -3,7 +3,7 @@ const { refreshToken } = require("../../controllers/authController");
 const router = express.Router();
 const {
   vendorRegister,
-  addBusinessDetails,
+  addVendorBusinessDetails,
   vendorLogin,
   getVendorProfile,
   // updateVendorProfile,
@@ -12,10 +12,12 @@ const {
   getAllVendor,
   loginWithMobile,
   getAllFilteroutVendor,
-  addServiceRequiredFields,
-  addServiceAdditionalDetails,
+  // addServiceRequiredFields,
+  // addServiceAdditionalDetails,
   getOnlyProductVendor,
   getVendorByServiceName,
+  addServiceUserBusinessDetails,
+  addAdditionalServices,
 } = require("../../controllers/vendor/vendorController");
 // const authMiddleware = require("../../controllers/middleware/authMiddleware");
 const multer = require("multer");
@@ -31,11 +33,9 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
-
 const upload = multer({ storage: storage });
 
-// Configure storage for file uploads
-const storage1 = multer.diskStorage({
+const additionalStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/additional_images/");
   },
@@ -44,27 +44,36 @@ const storage1 = multer.diskStorage({
   },
 });
 
-const upload1 = multer({ storage: storage1 });
+const uploadAdditional = multer({ storage: additionalStorage });
 
 // Route for refreshing token
 router.post("/refresh-token", refreshToken);
 router.post("/register", vendorRegister);
 router.put(
-  "/add-shop-details/:id",
+  "/add-vendor-business-details/:id",
   upload.fields([
     { name: "shop_image_or_logo", maxCount: 1 },
-    // { name: "shop_logo", maxCount: 1 },
     { name: "vehicle_image", maxCount: 1 },
   ]),
-  addBusinessDetails
+  addVendorBusinessDetails
 );
+
 router.post("/login", vendorLogin);
-router.post("/save-vendor-details/:id", addServiceRequiredFields);
 router.put(
-  "/add-service-additional-details/:id",
-  upload1.fields([{ name: "images", maxCount: 5 }]),
-  addServiceAdditionalDetails
+  "/add-service-user-business-details/:id",
+  upload.fields([{ name: "shop_image_or_logo", maxCount: 1 }]),
+  addServiceUserBusinessDetails
 );
+// router.post(
+//   "/save-vendor-details/:id",
+//   uploadAdditional.fields([{ name: "shop_image_or_logo", maxCount: 5 }]),
+//   addServiceRequiredFields
+// );
+// router.put(
+//   "/add-service-additional-details/:id",
+//   upload1.fields([{ name: "images", maxCount: 5 }]),
+//   addServiceAdditionalDetails
+// );
 router.post("/loginwithmobilenumber", loginWithMobile);
 router.get("/getprofile/:id", getVendorProfile);
 router.get("/getallvendor", getAllVendor);
@@ -73,5 +82,10 @@ router.get("/filterout-vendors/:id", getAllFilteroutVendor);
 router.get("/get-vendor-by-servicename/:name", getVendorByServiceName);
 router.delete("/delete-vendor-profile", deleteVendorProfile);
 router.put("/add-address/:id", addAddress);
+router.put(
+  "/add-additional-services/:id",
+  uploadAdditional.fields([{ name: "additional_images", maxCount: 6 }]),
+  addAdditionalServices
+);
 
 module.exports = router;
