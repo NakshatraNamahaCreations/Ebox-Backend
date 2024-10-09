@@ -53,7 +53,8 @@ const UserOrder = require("../../models/user/Order");
 exports.userOrder = async (req, res) => {
   try {
     const {
-      productdata,
+      product_data,
+      service_data,
       receiver_mobilenumber,
       receiver_name,
       delivery_address,
@@ -64,11 +65,21 @@ exports.userOrder = async (req, res) => {
       order_status,
       user_id,
       user_name,
-      event_data,
+      event_date,
       event_name,
+      ordered_date,
     } = req.body;
+    // Extract file paths from req.files
+    const gatepassImage = req.files["upload_gatepass"]
+      ? req.files["upload_gatepass"][0].path
+      : null;
+    const invitationImage = req.files["upload_invitation"]
+      ? req.files["upload_invitation"][0].path
+      : null;
+
     const newOrder = new UserOrder({
-      productdata,
+      product_data,
+      service_data,
       receiver_mobilenumber,
       receiver_name,
       delivery_address,
@@ -79,8 +90,11 @@ exports.userOrder = async (req, res) => {
       order_status,
       user_id,
       user_name,
-      event_data,
+      event_date,
       event_name,
+      ordered_date,
+      upload_gatepass: gatepassImage, // Store file path for gatepass
+      upload_invitation: invitationImage, // Store file path for invitation
     });
     await newOrder.save();
     res.status(200).json({ message: "Order placed", order: newOrder });

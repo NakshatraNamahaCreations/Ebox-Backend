@@ -47,7 +47,7 @@ app.use("/api/team", team);
 app.use("/api/service", service);
 app.use("/api/sub-service", subService);
 // user
-app.use("/api/userorder", userorder);
+app.use("/api/user-order", userorder);
 
 // app.use("/api/users", require("./routes/users"));
 

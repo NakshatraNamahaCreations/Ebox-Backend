@@ -5,9 +5,33 @@ const {
   getUserOrder,
   getAllOrder,
 } = require("../../controllers/user/Order");
+const path = require("path");
+const multer = require("multer");
 
-router.post("/user-order", userOrder);
-router.get("/getorder/:id", getUserOrder);
+// Configure storage for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/image_data/"); // Directory to save uploaded files
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to filename
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+router.post(
+  "/create-order",
+  upload.fields([
+    { name: "upload_gatepass", maxCount: 1 },
+    { name: "upload_invitation", maxCount: 1 },
+  ]),
+  userOrder
+);
+router.get("/get-a-order/:id", getUserOrder);
 router.get("/getallorder", getAllOrder);
 
 module.exports = router;

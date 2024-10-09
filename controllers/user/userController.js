@@ -49,12 +49,12 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "email not match" });
     }
-    // console.log("User found:", user);
+    console.log("User found:", user);
 
-    // console.log("user", user.password);
+    console.log("user", user.password);
 
     // Check if the password is correct
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Password not match" });
     }
