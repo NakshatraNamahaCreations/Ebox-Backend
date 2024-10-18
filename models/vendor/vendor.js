@@ -67,7 +67,7 @@ const vendorSchema = new mongoose.Schema({
   vehicle_by: String,
   is_approved: Boolean,
   // requirement_fields: Array,
-
+  pricing: Number,
   experience_in_business: String,
   year_of_establishment: String,
   website_url: String,

@@ -74,6 +74,7 @@ router.put(
 //   upload1.fields([{ name: "images", maxCount: 5 }]),
 //   addServiceAdditionalDetails
 // );
+
 router.post("/loginwithmobilenumber", loginWithMobile);
 router.get("/getprofile/:id", getVendorProfile);
 router.get("/getallvendor", getAllVendor);

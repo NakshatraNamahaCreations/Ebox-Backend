@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema({
     // required: true,
     minlength: 6,
   },
+  saved_address: Array,
   company_profile: [
     {
       company_type: String,

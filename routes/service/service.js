@@ -27,7 +27,11 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-router.post("/add-service", upload.single("service_image"), addService);
+router.post(
+  "/add-service",
+  // upload.single("service_image"),
+  addService
+);
 router.put("/add-requirements/:id", addRequirements);
 router.get("/get-service-by-servicename/:name", getServiceByServiceName);
 router.post("/add-service-via-excel", addServicesViaExcel);

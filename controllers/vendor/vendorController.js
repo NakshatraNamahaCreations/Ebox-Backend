@@ -128,6 +128,7 @@ exports.addServiceUserBusinessDetails = async (req, res) => {
       year_of_establishment,
       website_url,
       gst_number,
+      pricing,
       business_hours,
       shop_name,
     } = req.body;
@@ -146,6 +147,7 @@ exports.addServiceUserBusinessDetails = async (req, res) => {
         shop_name: shop_name,
         year_of_establishment: year_of_establishment,
         website_url: website_url,
+        pricing: pricing,
         gst_number: gst_number,
         business_hours: parsedBusinessHours,
         experience_in_business: experience_in_business,

@@ -49,32 +49,30 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "email not match" });
     }
-    console.log("User found:", user);
+    // console.log("User found:", user);
 
-    console.log("user", user.password);
+    // console.log("user", user.password);
 
     // Check if the password is correct
-    const isMatch = bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Password not match" });
     }
-    // console.log("Password match:", isMatch);
-    // Generate JWT token
-    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
-      {
-        expiresIn: "7d",
-      }
-    );
+    // const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    //   expiresIn: "1h",
+    // });
+    // const refreshToken = jwt.sign(
+    //   { id: user._id },
+    //   process.env.REFRESH_TOKEN_SECRET,
+    //   {
+    //     expiresIn: "7d",
+    //   }
+    // );
 
     res.status(200).json({
       message: "Login Success",
-      accessToken,
-      refreshToken,
+      user: user,
+      // accessToken: accessToken, // Include token if required
     });
   } catch (error) {
     console.error(error);
@@ -84,14 +82,14 @@ exports.login = async (req, res) => {
 
 // Controller for getting user profile
 exports.getProfile = async (req, res) => {
+  const userId = req.params.id;
   try {
-    const user = await UserSchema.findById({ _id: req.params.id }).select(
-      "-password"
-    );
+    const user = await UserSchema.findOne({ _id: userId }).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    } else {
+      return res.status(200).json(user);
     }
-    res.json(user);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -169,5 +167,38 @@ exports.deleteUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// write a api for save deliver address (saved_address:Array)?
+// app.post('/api/save-delivery-address',
+exports.addAddress = async (req, res) => {
+  try {
+    const { saved_address } = req.body;
+
+    // Find the user by ID
+    const findUser = await UserSchema.findOne({ _id: req.params.id });
+
+    if (!findUser) {
+      return res.status(404).json({
+        status: false,
+        message: "User not found",
+      });
+    }
+
+    // Update the user's saved_address array by pushing the new address
+    const updatedUser = await UserSchema.findOneAndUpdate(
+      { _id: req.params.id },
+      { $push: { saved_address: saved_address } }, // Use $push to add the new address
+      { new: true } // Return the updated document
+    );
+
+    res.status(200).json({
+      status: true,
+      message: "Address saved successfully",
+      user: updatedUser, // Optionally return the updated user if needed
+    });
+  } catch (error) {
+    res.status(500).json({ status: false, error: error.message });
   }
 };

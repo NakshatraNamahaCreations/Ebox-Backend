@@ -57,8 +57,13 @@ exports.userOrder = async (req, res) => {
       service_data,
       receiver_mobilenumber,
       receiver_name,
-      delivery_address,
+      venue_name,
+      venue_open_time,
+      event_start_time,
+      event_location,
       gst_applied_value,
+      sub_total,
+      cart_total,
       paid_amount,
       payment_method,
       payment_status,
@@ -66,10 +71,14 @@ exports.userOrder = async (req, res) => {
       user_id,
       user_name,
       event_date,
+      number_of_days,
       event_name,
       ordered_date,
     } = req.body;
-    // Extract file paths from req.files
+
+    const parsedProductData = JSON.parse(product_data);
+    const parsedServiceData = JSON.parse(service_data);
+
     const gatepassImage = req.files["upload_gatepass"]
       ? req.files["upload_gatepass"][0].path
       : null;
@@ -78,12 +87,17 @@ exports.userOrder = async (req, res) => {
       : null;
 
     const newOrder = new UserOrder({
-      product_data,
-      service_data,
+      product_data: parsedProductData,
+      service_data: parsedServiceData,
       receiver_mobilenumber,
       receiver_name,
-      delivery_address,
+      venue_name,
+      venue_open_time,
+      event_start_time,
+      event_location,
       gst_applied_value,
+      sub_total,
+      cart_total,
       paid_amount,
       payment_method,
       payment_status,
@@ -91,10 +105,11 @@ exports.userOrder = async (req, res) => {
       user_id,
       user_name,
       event_date,
+      number_of_days,
       event_name,
       ordered_date,
-      upload_gatepass: gatepassImage, // Store file path for gatepass
-      upload_invitation: invitationImage, // Store file path for invitation
+      upload_gatepass: gatepassImage,
+      upload_invitation: invitationImage,
     });
     await newOrder.save();
     res.status(200).json({ message: "Order placed", order: newOrder });
